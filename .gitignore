@@ -396,3 +396,10 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+.vscode/launch.json
+.vscode/tasks.json
+PokemonApi/pokemon.db
+PokemonApi/pokemon.db-shm
+PokemonApi/pokemon.db-wal
+PokemonApi/PokemonApi.http
+PokemonApi/Properties/launchSettings.json
