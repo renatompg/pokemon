@@ -1,5 +1,7 @@
 # Busca e Captura de Pokémons
 
+>  This is a challenge by [Coodesh](https://coodesh.com/)
+
 ## Descrição
 Este projeto tem como objetivo gerenciar mestres de Pokémon e permitir a captura e listagem de Pokémons. Com ele, é possível listar detalhes de um Pokémon, cadastrar mestres, registrar a captura de Pokémons por um mestre e listar todos os Pokémons capturados.
 
