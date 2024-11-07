@@ -3,10 +3,6 @@ using Moq;
 using PokemonApi.ExternalApi;
 using PokemonApi.Models.Dto;
 using PokemonApi.Services;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Xunit;
 
 namespace PokemonApi.Tests
 {

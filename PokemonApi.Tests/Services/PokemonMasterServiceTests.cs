@@ -5,12 +5,10 @@ using PokemonApi.Models.Entity;
 using PokemonApi.Services;
 using Capture = PokemonApi.Models.Entity.Capture;
 
-
 namespace PokemonApi.Tests.Services
 {
     public class PokemonMasterServiceTests
     {
-
         private readonly Mock<IPokemonMasterRepository> _pokemonMasterRepositoryMock;
         private readonly Mock<ICaptureRepository> _captureRepositoryMock;
         private readonly Mock<IPokemonService> _pokemonServiceMock;

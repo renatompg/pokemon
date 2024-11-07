@@ -22,15 +22,33 @@ namespace PokemonApi.Controllers
         /// <summary>
         /// Obtém uma lista de Pokémon aleatórios.
         /// </summary>
-        /// <returns>Lista de detalhes de Pokémon.</returns>
+        /// <returns>Lista de Pokémons com links para detalhes adicionais de cada Pokémon.</returns>
+        /// <remarks>
+        /// Este endpoint implementa o padrão HATEOAS ao adicionar links para os detalhes de cada Pokémon.
+        /// Para cada Pokémon na lista retornada, a URL do recurso detalhado do Pokémon (detalhes por nome) é incluída
+        /// na propriedade 'Url'. Isso permite que o cliente navegue facilmente para o recurso de detalhes de cada Pokémon
+        /// diretamente a partir da resposta.
+        ///
+        /// Como no projeto há a definição de retornar dados detalhados do Pokémon, como imagem em base64 e evoluções,
+        /// e devido ao custo de gerar esses dados para uma lista inteira, optou-se por aplicar o padrão HATEOAS.
+        /// Dessa forma, garantimos que o cliente possa acessar os detalhes do Pokémon quando necessário, sem gerar sobrecarga
+        /// </remarks>
         [HttpGet("random")]
-        [SwaggerResponse(200, "Lista de Pokémon aleatórios obtida com sucesso.", typeof(IEnumerable<PokemonDetail>))]
+        [SwaggerResponse(200, "Lista de Pokémon aleatórios obtida com sucesso.", typeof(IEnumerable<PokemonSummary>))]
         [SwaggerOperation(Summary = "Obter Pokémon aleatórios", Description = "Retorna uma lista de Pokémon com detalhes básicos.")]
-        public async Task<ActionResult<IEnumerable<PokemonDetail>>> GetRandomPokemonsAsync()
+        public async Task<ActionResult<IEnumerable<PokemonSummary>>> GetRandomPokemonsAsync()
         {
             var pokemons = await _pokemonService.GetRandomPokemonAsync();
+
+            foreach (var pokemon in pokemons)
+            {
+                // O HATEOAS é implementado ao adicionar a URL do recurso de detalhes para cada Pokémon
+                pokemon.Url = $"{Request.Scheme}://{Request.Host}{Request.PathBase}/api/pokemon/{pokemon.Name}";
+            }
+
             return Ok(pokemons);
         }
+
 
         /// <summary>
         /// Obtém detalhes de um Pokémon específico pelo nome.
@@ -38,10 +56,10 @@ namespace PokemonApi.Controllers
         /// <param name="name">Nome do Pokémon.</param>
         /// <returns>Detalhes do Pokémon.</returns>
         [HttpGet("{name}")]
-        [SwaggerResponse(200, "Detalhes do Pokémon obtidos com sucesso.", typeof(PokemonSummary))]
+        [SwaggerResponse(200, "Detalhes do Pokémon obtidos com sucesso.", typeof(PokemonDetail))]
         [SwaggerResponse(404, "Pokémon não encontrado.")]
         [SwaggerOperation(Summary = "Obter Pokémon por nome", Description = "Retorna detalhes de um Pokémon específico.")]
-        public async Task<ActionResult<PokemonSummary>> GetPokemonByNameAsync(string name)
+        public async Task<ActionResult<PokemonDetail>> GetPokemonByNameAsync(string name)
         {
             var pokemon = await _pokemonService.GetPokemonByNameAsync(name);
             if (pokemon == null)
@@ -105,7 +123,12 @@ namespace PokemonApi.Controllers
         /// <summary>
         /// Obtém todos os Pokémon capturados.
         /// </summary>
-        /// <returns>Lista de Pokémon capturados.</returns>
+        /// <returns>Lista de Pokémon capturados com links para detalhes.</returns>
+        /// <remarks>
+        /// Este endpoint utiliza o padrão HATEOAS ao adicionar links para os detalhes de cada Pokémon e Pokémon Master.
+        /// Cada Pokémon capturado retorna a URL do recurso detalhado, tanto para o Pokémon quanto para o Pokémon Master.
+        /// O uso do padrão HATEOAS proporciona melhor navegabilidade na API.
+        /// </remarks>
         [HttpGet("master/capture")]
         [SwaggerResponse(200, "Lista de Pokémon capturados obtida com sucesso.", typeof(IEnumerable<PokemonMaster>))]
         [SwaggerResponse(400, "Erro ao obter a lista de Pokémon capturados.")]
@@ -114,10 +137,30 @@ namespace PokemonApi.Controllers
         {
             try
             {
-                return Ok(await _pokemonMasterService.GetAllCapturedPokemonsAsync());
+                // Obtendo todos os Pokémon capturados
+                var capturedPokemons = await _pokemonMasterService.GetAllCapturedPokemonsAsync();
+
+                // Verificando se há Pokémon capturados e adicionando os links HATEOAS
+                if (capturedPokemons == null || !capturedPokemons.Any())
+                {
+                    return Ok(Enumerable.Empty<CapturedPokemon>());
+                }
+
+                // Adicionando os links HATEOAS para cada Pokémon capturado
+                var result = capturedPokemons.Select(capturedPokemon =>
+                {
+                    capturedPokemon.PokemonMasterUrl = $"{Request.Scheme}://{Request.Host}{Request.PathBase}/api/pokemon/master/{capturedPokemon.PokemonMasterName}";
+                    capturedPokemon.PokemonUrl = $"{Request.Scheme}://{Request.Host}{Request.PathBase}/api/pokemon/{capturedPokemon.PokemonName}";
+                    return capturedPokemon;
+                }).ToList();
+
+                // Retornando a lista de Pokémon capturados
+                return Ok(result);
             }
             catch (Exception ex)
             {
+                // Tratando exceções e retornando erro de requisição
+                // Considerar logar o erro para facilitar o diagnóstico
                 return BadRequest(ex.Message);
             }
         }
