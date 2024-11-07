@@ -28,42 +28,49 @@ namespace PokemonApi.Services
 
         public async Task CapturePokemonAsync(CaptureRequest captureRequest)
         {
-            // Validar a captura do Pokémon e obter o objeto Capture
             var capture = await ValidateCaptureAsync(captureRequest);
 
-            // 5. Salvar no repositório de Capture
             await _captureRepository.SaveAsync(capture);
         }
 
         private async Task<Capture> ValidateCaptureAsync(CaptureRequest captureRequest)
         {
-            // 1. Buscar o PokemonMaster pelo nome
             var pokemonMaster = await _pokemonMasterRepository.GetByName(captureRequest.PokemonMasterName);
             if (pokemonMaster == null)
             {
                 throw new Exception("Pokemon Master não encontrado.");
             }
 
-            // 2. Buscar o Pokémon na API externa
             var pokemon = await _pokemonService.GetPokemonByNameAsync(captureRequest.PokemonName);
             if (pokemon == null)
             {
                 throw new Exception("Pokémon não encontrado na API externa.");
             }
 
-            // 3. Verificar se o Pokémon já foi capturado por esse mestre
             var existingCapture = await _captureRepository.GetByMasterIdAndPokemonNameAsync(pokemonMaster.Id, captureRequest.PokemonName);
             if (existingCapture != null)
             {
                 throw new Exception("Este Pokémon já foi capturado por este mestre.");
             }
 
-            // 4. Criar e retornar a entidade Capture
             return new Capture
             {
                 PokemonMasterId = pokemonMaster.Id,
                 PokemonName = captureRequest.PokemonName
             };
+        }
+
+        public async Task<IEnumerable<CapturedPokemon>> GetAllCapturedPokemonsAsync()
+        {
+            var capturedPokemon = await _captureRepository.GetAllCapturedPokemonsAsync();
+
+            return capturedPokemon?.Where(c => c.PokemonMaster != null)
+                                    .Select(c => new CapturedPokemon
+                                    {
+                                        PokemonMasterName = c.PokemonMaster.Name,
+                                        PokemonName = c.PokemonName
+                                    })
+                                    ?? Enumerable.Empty<CapturedPokemon>();
         }
     }
 }

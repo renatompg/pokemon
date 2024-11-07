@@ -8,5 +8,6 @@ namespace PokemonApi.Services
         Task<PokemonMaster?> GetByName(string name);
         Task Save(PokemonMaster pokemonMaster);
         Task CapturePokemonAsync(CaptureRequest captureRequest);
+        Task<IEnumerable<CapturedPokemon>> GetAllCapturedPokemonsAsync();
     }
 }

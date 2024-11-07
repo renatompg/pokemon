@@ -8,8 +8,10 @@ using System.Net.Http;
 using PokemonApi.ExternalApi;
 using PokemonApi.Models.Dto;
 using Newtonsoft.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using Moq.Protected;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace PokemonApi.Tests.IntegrationTests
 {
@@ -18,7 +20,7 @@ namespace PokemonApi.Tests.IntegrationTests
         private DbContextOptions<AppDbContext> GetInMemoryDatabaseOptions()
         {
             return new DbContextOptionsBuilder<AppDbContext>()
-                .UseInMemoryDatabase("TestDb")
+                .UseInMemoryDatabase(databaseName: $"TestDb_{Guid.NewGuid()}") 
                 .Options;
         }
 
@@ -26,7 +28,11 @@ namespace PokemonApi.Tests.IntegrationTests
         {
             var mockHandler = new Mock<HttpMessageHandler>();
             mockHandler.Protected()
-                .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
+                .Setup<Task<HttpResponseMessage>>(
+                    "SendAsync",
+                    ItExpr.IsAny<HttpRequestMessage>(),
+                    ItExpr.IsAny<CancellationToken>()
+                )
                 .ReturnsAsync(new HttpResponseMessage
                 {
                     StatusCode = System.Net.HttpStatusCode.OK,
@@ -40,15 +46,18 @@ namespace PokemonApi.Tests.IntegrationTests
         {
             // Arrange: Configuração do banco de dados em memória e criação de dependências
             var options = GetInMemoryDatabaseOptions();
-            var context = new AppDbContext(options);
+            await using var context = new AppDbContext(options);
+
             var pokemonMasterRepository = new PokemonMasterRepository(context);
             var captureRepository = new CaptureRepository(context);
 
             // Configurando o mock da API externa para retornar um Pokémon
-            var mockHttpClient = GetMockHttpMessageHandler("{\"name\":\"pikachu\",\"id\":25}");
-            var httpClient = new HttpClient(mockHttpClient.Object);
+            var mockHttpClientHandler = GetMockHttpMessageHandler("{\"name\":\"pikachu\",\"id\":25}");
+            var httpClient = new HttpClient(mockHttpClientHandler.Object);
 
-            var pokemonService = new PokemonService(new PokemonApiClient(httpClient), new Microsoft.Extensions.Caching.Memory.MemoryCache(new Microsoft.Extensions.Caching.Memory.MemoryCacheOptions()));
+            var pokemonApiClient = new PokemonApiClientV2(httpClient);
+            var memoryCache = new MemoryCache(new MemoryCacheOptions());
+            var pokemonService = new PokemonService(pokemonApiClient, memoryCache);
 
             var service = new PokemonMasterService(
                 pokemonMasterRepository, captureRepository, pokemonService

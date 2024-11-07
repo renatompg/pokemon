@@ -1,14 +1,13 @@
-using System.Text.Json;
 using Newtonsoft.Json;
 using PokemonApi.Models.Dto;
 
 namespace PokemonApi.ExternalApi
 {
-    public class PokemonApiClient : IPokemonApiClient
+    public class PokemonApiClientV1 : IPokemonApiClient
     {
         private readonly HttpClient _httpClient;
 
-        public PokemonApiClient(HttpClient httpClient) => _httpClient = httpClient;
+        public PokemonApiClientV1(HttpClient httpClient) => _httpClient = httpClient;
 
         public async Task<PokemonDetail> GetPokemonByNameAsync(string name)
         {
