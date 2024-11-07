@@ -1,51 +1,66 @@
-# Backend Challenge - Pokémons
+# Busca e Captura de Pokémons
 
-## Introdução
+## Descrição
+Este projeto tem como objetivo gerenciar mestres de Pokémon e permitir a captura e listagem de Pokémons. Com ele, é possível listar detalhes de um Pokémon, cadastrar mestres, registrar a captura de Pokémons por um mestre e listar todos os Pokémons capturados.
 
-Este é um teste para que possamos ver as suas habilidades como Backend Developer.
+Repositório do projeto: [GitHub](https://github.com/renatompg/pokemon)
 
-Nesse teste você deverá desenvolver um projeto para listar pokémons, utilizando como base a API [https://pokeapi.co/](https://pokeapi.co/ "https://pokeapi.co/").
+## Tecnologias e Frameworks Utilizados
+- **Linguagem**: C#
+- **Frameworks**:
+  - ASP.NET Core
+  - Entity Framework Core
+  - SQLite (para persistência dos dados de mestres)
+- **Padrões de Projeto**:
+  - Arquitetura em camadas (services, repositórios, API externa)
+  - HATEOAS para navegabilidade entre endpoints
+  - Versionamento de API externa (v1: chamada simples, v2: resiliência com retries)
 
-[SPOILER] As instruções de entrega e apresentação do teste estão no final deste Readme (=
+## Recursos do Projeto
+- **Cache e Resiliência**: Implementado com MemoryCache para melhorar o desempenho e evitar chamadas repetitivas à API externa. Em uma versão escalável, seria ideal usar cache distribuído, como Redis.
+- **Controle de Versões e Migrations**: Utilização de migrations para versionamento das tabelas e controle das entidades.
+- **Boas Práticas de Nomenclatura**: Padrão PascalCase para nomes de operações e DTOs em inglês, enquanto mensagens de exceções e comentários no código estão em português.
 
-### Antes de começar
- 
-- O projeto deve utilizar a Linguagem específica na avaliação. Por exempo: C#
-- Considere como deadline da avaliação a partir do início do teste. Caso tenha sido convidado a realizar o teste e não seja possível concluir dentro deste período, avise a pessoa que o convidou para receber instruções sobre o que fazer.
-- Documentar todo o processo de investigação para o desenvolvimento da atividade (README.md no seu repositório); os resultados destas tarefas são tão importantes do que o seu processo de pensamento e decisões à medida que as completa, por isso tente documentar e apresentar os seus hipóteses e decisões na medida do possível.
+## Bibliotecas Utilizadas
+- `Microsoft.AspNetCore.Mvc.NewtonsoftJson` (8.0.10): Integração do Newtonsoft.Json com ASP.NET Core.
+- `Microsoft.AspNetCore.OpenApi` (8.0.10): Geração de documentação OpenAPI/Swagger.
+- `Microsoft.EntityFrameworkCore` (8.0.10): ORM para interação com bancos de dados.
+- `Microsoft.EntityFrameworkCore.Design` (8.0.10): Ferramentas de design para Entity Framework Core.
+- `Microsoft.EntityFrameworkCore.Sqlite` (8.0.10): Suporte ao SQLite.
+- `Microsoft.Extensions.Caching.Memory` (8.0.1): Cache em memória.
+- `Microsoft.Extensions.Http` (8.0.1): Chamadas HTTP abstratas.
+- `Microsoft.Extensions.Http.Polly` (8.0.10): Resiliência com Polly para chamadas HTTP.
+- `Newtonsoft.Json` (13.0.3): Serialização e desserialização JSON.
+- `Polly` (8.4.2): Implementação de retries e circuit breakers.
+- `Swashbuckle.AspNetCore` (6.9.0): Documentação Swagger.
+- `Swashbuckle.AspNetCore.Annotations` (6.9.0): Anotações de atributos Swagger.
 
-## Backend-end
+## Endpoints
+- **GET** `/api/pokemon/random`: Retorna uma lista com 10 Pokémons aleatórios.
+- **GET** `/api/pokemon/{name}`: Retorna os detalhes de um Pokémon específico pelo nome.
+- **GET** `/api/pokemon/master/{name}`: Obtém o registro mestre de um Pokémon específico.
+- **POST** `/api/pokemon/master`: Cadastra um novo mestre de Pokémon.
+- **POST** `/api/pokemon/master/capture`: Registra a captura de um Pokémon por um mestre.
+- **GET** `/api/pokemon/master/capture`: Lista todos os Pokémons capturados por um mestre.
 
-- Get para 10 Pokémon aleatórios
-- GetByID para 1 Pokémon específico
-- Cadastro do mestre pokemon (dados básicos como nome, idade e cpf) em SQLite
-- Post para informar que um Pokémon foi capturado.
-- Listagem dos Pokémon já capturados.
-  
+## Instalação e Execução
 
-### Requisitos
+1. Clone o repositório:
+   ```bash
+   git clone https://github.com/renatompg/pokemon
 
-1 - Todos os endpoints devem retornar os dados básicos do Pokémon, suas evoluções e o base64 de sprite default de cada Pokémon.
+2. Navegue até o diretório do projeto e configure o banco de dados SQLite:
+   ```bash
+   cd PokemonApi
+   dotnet ef database update
+   
+3. Execute o projeto:
+   ```bash
+   dotnet run
 
+``
+## Observações sobre os Testes
+Foram desenvolvidos testes de integração e testes unitários para o projeto. Os testes de integração abordam dois cenários principais: comunicação com a API externa e integração com o banco de dados local (SQLite).
 
-## Readme do Repositório
-
-- Deve conter o título do projeto
-- Uma descrição sobre o projeto em frase
-- Deve conter uma lista com linguagem, framework e/ou tecnologias usadas
-- Como instalar e usar o projeto (instruções)
-- Não esqueça o [.gitignore](https://www.toptal.com/developers/gitignore)
-- Se está usando github pessoal, referencie que é um challenge by coodesh:  
-
->  This is a challenge by [Coodesh](https://coodesh.com/)
-
-## Finalização e Instruções para a Apresentação
-
-1. Adicione o link do repositório com a sua solução no teste
-2. Adicione o link da apresentação do seu projeto no README.md.
-3. Verifique se o Readme está bom e faça o commit final em seu repositório;
-4. Envie e aguarde as instruções para seguir. Sucesso e boa sorte. =)
-
-## Suporte
-
-Use a [nossa comunidade](https://discord.gg/rdXbEvjsWu) para tirar dúvidas sobre o processo ou envie uma mensagem diretamente a um especialista no chat da plataforma. 
+## Decisões e Melhorias Futuras
+Para um projeto em produção, a separação em múltiplos serviços e a utilização de um cache distribuído (como Redis) são estratégias recomendadas para suportar maior escalabilidade e performance.
